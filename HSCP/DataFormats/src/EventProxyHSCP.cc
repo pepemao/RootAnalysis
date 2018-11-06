@@ -27,11 +27,6 @@ void EventProxyHSCP::init(std::vector<std::string> const& iFileNames){
   EventProxyBase::init(iFileNames);
   //fChain->SetMakeClass(0);
 
-  pair =0
-
-  fChain->SetBranch
-/* stara wersja
-
   pt_1_ = 0;
   pt_2_ = 0;
   eta_1_ = 0;
@@ -146,7 +141,7 @@ void EventProxyHSCP::init(std::vector<std::string> const& iFileNames){
   fChain->SetBranchStatus("run_nr*",1);
   fChain->SetBranchStatus("quality_index_1*",1);
   fChain->SetBranchStatus("quality_index_2*",1);
-*/
+
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -166,7 +161,43 @@ void  EventProxyHSCP::disableBranches(){
 /////////////////////////////////////////////////////////
 void  EventProxyHSCP::clear(){
 
-  if(pair) pair->clear();
+  if(pt_1) pt_1->clear();
+  if(pt_2) pt_2->clear();
+  if(eta_1) eta_1->clear();
+  if(eta_2) eta_2->clear();
+  if(phi_1) phi_1->clear();
+  if(phi_2) phi_2->clear();
+  if(ibeta_1) ibeta_1->clear();
+  if(ibeta_2) ibeta_2->clear();
+  if(err_ibeta_1) err_ibeta_1->clear();
+  if(err_ibeta_2) err_ibeta_2->clear();
+  if(n_CSC_hits_1) n_CSC_hits_1->clear();
+  if(n_CSC_hits_2) n_CSC_hits_2->clear();
+  if(n_DT_hits_1) n_DT_hits_1->clear();
+  if(n_DT_hits_2) n_DT_hits_2->clear();
+  if(n_RPC_hits_1) n_RPC_hits_1->clear();
+  if(n_RPC_hits_2) n_RPC_hits_2->clear();
+  if(n_strip_hits_1) n_strip_hits_1->clear();
+  if(n_strip_hits_2) n_strip_hits_2->clear();
+  if(n_pixel_hits_1) n_pixel_hits_1->clear();
+  if(n_pixel_hits_2) n_pixel_hits_2->clear();
+  if(n_TOF_meas_1) n_TOF_meas_1->clear();
+  if(n_TOF_meas_2) n_TOF_meas_2->clear();
+  if(I_h_1) I_h_1->clear();
+  if(I_h_2) I_h_2->clear();
+  if(I_as_1) I_as_1->clear();
+  if(I_as_2) I_as_2->clear();
+  if(mass_I_h_1) mass_I_h_1->clear();
+  if(mass_I_h_2) mass_I_h_2->clear();
+  if(mass_ibeta_1) mass_ibeta_1->clear();
+  if(mass_ibeta_2) mass_ibeta_2->clear();
+  if(pt_err_1) pt_err_1->clear();
+  if(pt_err_2) pt_err_2->clear();
+  if(lumi_sec) lumi_sec->clear();
+  if(event_nr) event_nr->clear();
+  if(run_nr) run_nr->clear();
+  if(quality_index_1) quality_index_1->clear();
+  if(quality_index_2) quality_index_2->clear();
 
 }
 /////////////////////////////////////////////////////////
