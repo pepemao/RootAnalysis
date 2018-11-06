@@ -1,0 +1,10 @@
+Boost directory: /usr/lib/x86_64-linux-gnu
+Installation prefix set to /home/piotr/Programy/RootAnalysis/build
+CMake Warning at HTauTau/Pythia8Interface/src/CMakeLists.txt:27 (MESSAGE):
+  Pythia8 not present.  Pythia8Interface will not be compiled.
+
+
+CMake Warning at HTauTau/SVfit/src/CMakeLists.txt:36 (MESSAGE):
+  SVfitTF not present.  SVfitAnalysis will not be compiled.
+
+

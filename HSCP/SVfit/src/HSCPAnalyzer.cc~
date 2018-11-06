@@ -1,0 +1,178 @@
+#include <sstream>
+#include <bitset>
+
+#include "RooAbsReal.h"
+#include "RooRealVar.h"
+#include "RooFormulaVar.h"
+#include "TF1.h"
+#include "Math/LorentzVector.h"
+#include "Math/WrappedTF1.h"
+#include "Math/RootFinder.h"
+#include "Math/Boost.h"
+#include "Math/Rotation3D.h"
+#include "Math/AxisAngle.h"
+
+#include "SVfitAnalyzer.h"
+#include "SVfitHistograms.h"
+#include "MuTauSpecifics.h"
+#include "TauTauSpecifics.h"
+#include "Tools.h"
+#include "MLObjectMessenger.h"
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+SVfitAnalyzer::SVfitAnalyzer(const std::string & aName, const std::string & aDecayMode) : HTTAnalyzer(aName, aDecayMode), aCovMET(2,2){
+
+#pragma omp critical
+  {  
+    SVFitAlgo.addLogM_fixed(true, 4.0);
+    SVFitAlgo.setLikelihoodFileName("");
+    SVFitAlgo.setMaxObjFunctionCalls(100000);
+    SVFitAlgo.setVerbosity(1);
+  }
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+SVfitAnalyzer::~SVfitAnalyzer(){
+
+  if(myHistos_) delete myHistos_;
+  if(myChannelSpecifics) delete myChannelSpecifics;
+
+  myHistos_ = 0;
+  myChannelSpecifics = 0;  
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+void SVfitAnalyzer::initialize(TDirectory* aDir,
+			       pat::strbitset *aSelections){
+
+  mySelections_ = aSelections;
+
+  myHistos_ = new SVfitHistograms(aDir, selectionFlavours_, myChannelSpecifics->getDecayModeName());
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+void SVfitAnalyzer::setAnalysisObjects(const EventProxyHTT & myEventProxy){
+
+  HTTAnalyzer::setAnalysisObjects(myEventProxy);
+
+  aCovMET[0][0] = aPair.getMETMatrix().at(0);
+  aCovMET[0][1] = aPair.getMETMatrix().at(1);
+  aCovMET[1][0] = aPair.getMETMatrix().at(2);
+  aCovMET[1][1] = aPair.getMETMatrix().at(3);
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+void SVfitAnalyzer::finalize(){
+
+  myHistos_->finalizeHistograms(myChannelSpecifics->getCategoryRejester());
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+void SVfitAnalyzer::fillControlHistos(const std::string & hNameSuffix){
+
+  const TLorentzVector & aVisSum = aLeg1.getP4() + aLeg2.getP4();
+  TLorentzVector tautauGen = aGenLeg1.getP4() + aGenLeg2.getP4();
+  TLorentzVector nunuGen = tautauGen - 
+    aGenLeg1.getChargedP4() - aGenLeg2.getChargedP4() -
+    aGenLeg1.getNeutralP4() - aGenLeg2.getNeutralP4();
+  float visMass = aVisSum.M();
+  double delta = (SVFitP4.M() - tautauGen.M())/tautauGen.M();
+
+  myHistos_->fill1DHistogram("h1DMassVis"+hNameSuffix, visMass);
+  myHistos_->fill1DHistogram("h1DMassGen"+hNameSuffix,tautauGen.M());
+  myHistos_->fill1DHistogram("h1DMassFastMTT"+hNameSuffix,SVFitP4.M());
+  myHistos_->fill1DHistogram("h1DMassCA"+hNameSuffix, massCA);
+  myHistos_->fill1DHistogram("h1DDeltaFastMTT"+hNameSuffix,delta);
+
+  delta = (massCA - tautauGen.M())/tautauGen.M();
+  myHistos_->fill1DHistogram("h1DDeltaCA"+hNameSuffix,delta);
+  myHistos_->fill1DHistogram("h1DCpuTimeFast"+hNameSuffix,fastMTTAlgo.getCpuTime("scan"));
+
+  delta = (aMET.getP4().X() - nunuGen.X())/nunuGen.X();
+  myHistos_->fill1DHistogram("h1DDeltaMET_X_Res"+hNameSuffix, delta);
+
+  delta = (aMET.getP4().Y() - nunuGen.Y())/nunuGen.Y();
+  myHistos_->fill1DHistogram("h1DDeltaMET_Y_Res"+hNameSuffix, delta);
+
+  myHistos_->fill2DHistogram("h2DDeltaMET_X_Res_Vs_Mass"+hNameSuffix, nunuGen.Perp(), delta);
+
+  
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+bool SVfitAnalyzer::analyze(const EventProxyBase& iEvent, ObjectMessenger *aMessenger){
+
+  const EventProxyHTT & myEventProxy = static_cast<const EventProxyHTT&>(iEvent);
+  sampleName = HTTAnalysis::getSampleName(myEventProxy);
+
+  std::string hNameSuffix = sampleName;
+
+  if(!myEventProxy.pairs->size()) return true;
+  setAnalysisObjects(myEventProxy);
+
+  bool isGoodReco = aGenLeg1.getP4().DeltaR(aLeg1.getP4())<0.4 &&
+		    aGenLeg2.getP4().DeltaR(aLeg2.getP4())<0.4;
+  
+  isGoodReco |= aGenLeg2.getP4().DeltaR(aLeg1.getP4())<0.4 &&
+		aGenLeg1.getP4().DeltaR(aLeg2.getP4())<0.4;
+  
+  bool goodGenTau = aGenLeg1.getP4().E()>1.0 && aGenLeg2.getP4().E()>1.0;							   
+
+  isGoodReco = aGenLeg2.getP4().DeltaR(aLeg2.getP4())<0.4;
+  goodGenTau = aGenLeg2.getP4().E()>1.0;
+
+  if(sampleName=="WAllJets"){
+    goodGenTau = true;
+    isGoodReco = true;
+  }
+  
+  if(sampleName=="DYAllJetsMatchL"){
+    goodGenTau = true;
+    isGoodReco = true;
+  }
+  
+  if(isGoodReco && goodGenTau){
+    fillControlHistos(hNameSuffix);
+  
+    if(aMessenger and std::string("MLObjectMessenger").compare((aMessenger->name()).substr(0,17))==0 ) // if NULL it will do nothing
+      {
+	// Putting data to MLObjectMessenger
+	try
+	  {
+	    MLObjectMessenger* mess = (MLObjectMessenger*)aMessenger;
+	    mess->putObjectVector(const_cast <const HTTParticle*>(&aLeg1), "legs");
+	    mess->putObjectVector(const_cast <const HTTParticle*>(&aLeg2), "legs");
+	    mess->putObjectVector(const_cast <const HTTParticle*>(&aMET), "jets");
+	    mess->putObjectVector(const_cast <const HTTParticle*>(&aJet1), "jets");
+	    mess->putObjectVector(const_cast <const HTTParticle*>(&aJet2), "jets");
+	    mess->putObject(&aCovMET[0][0], "covMET00");
+	    mess->putObject(&aCovMET[0][1], "covMET01");
+	    mess->putObject(&aCovMET[1][0], "covMET10");
+	    mess->putObject(&aCovMET[1][1], "covMET11");
+
+	    double genMass = (aGenLeg1.getP4() + aGenLeg2.getP4()).M();      
+	    mess->putObject(&genMass, "genMass");
+
+	    double visMass = (aLeg1.getP4() + aLeg2.getP4()).M();      
+	    mess->putObject(&visMass, "visMass");
+
+	    double caMass = runCAAlgo(aLeg1, aLeg2, aMET);
+	    mess->putObject(&caMass, "caMass");
+
+	    TLorentzVector fastMTTP4 = computeMTT("fastMTT");
+	    double fastMTTMass = fastMTTP4.M();
+	    mess->putObject(&fastMTTMass, "fastMTTMass");
+	  }
+	catch(const std::exception& e)
+	  {
+	    std::throw_with_nested(std::runtime_error("[ERROR] UNKNOWN ERROR IN "+std::string( __func__ )+ " WHEN PUTTING DATA TO MLObjectMessenger!"));
+	  }                    
+      }
+  }
+  else return false;
+
+  return true;
+}
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
