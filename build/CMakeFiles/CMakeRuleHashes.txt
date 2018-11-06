@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-31c83302debad66412b1e17250656b27 HTauTau/DataFormats/src/CMakeFiles/G__HTTEvent
-792b526b7a4dbc868d8304ae0e2ead58 HTauTau/DataFormats/src/G__HTTEvent.cxx
