@@ -22,7 +22,7 @@
 
       virtual EventProxyBase* clone() const;
 
-      CandidatePair *pair;
+      CandidatePair myPair;
   
       ///Enable branches to be read
       void enableBranches();

@@ -40,21 +40,13 @@ class CandidatePair{
 
   void set_run_nr(int x){run_nr = x;}
 
-  void set_quality_index_1(int x){quality_index_1 = x;}
-
-  void set_quality_index_2(int x){quality_index_2 = x;}
+  void set_quality_index(int index, int x);
   
-  void set_pt_1(double x){pt_1 = x;}
+  void set_pt(int index, double x);
 
-  void set_pt_2(double x){pt_2 = x;}
+  void set_eta(int index, double x);
 
-  void set_eta_1(double x){eta_1 = x;}
-
-  void set_eta_2(double x){eta_2 = x;}
-
-  void set_phi_1(double x){phi_1 = x;}
-
-  void set_phi_2(double x){phi_2 = x;}
+  void set_phi(int index, double x);
 
   ///Reset class data members
   void clear();
@@ -65,21 +57,13 @@ class CandidatePair{
 
   int get_run_nr() const {return run_nr;}
 
-  int get_quality_index_1() const {return quality_index_1;}
+  int quality_index(int index);
 
-  int get_quality_index_2() const {return quality_index_2;}
+  double pt(int index);
 
-  double get_pt_1() const {return pt_1;}
+  double eta(int index);
 
-  double get_pt_2() const {return pt_2;}
-
-  double get_eta_1() const {return eta_1;}
-
-  double get_eta_2() const {return eta_2;}
-
-  double get_phi_1() const {return phi_1;}
-
-  double get_phi_2() const {return phi_2;}
+  double phi(int index);
 
  private:
 
