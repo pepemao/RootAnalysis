@@ -8,7 +8,7 @@
 #include <vector>
 #include <bitset>
 #include <iostream>
-#include <math> // #include <math.h> ?
+#include <math.h> // #include <math.h> ?
 
 #include "PropertyEnum.h"
 #include "TriggerEnum.h"
@@ -79,3 +79,4 @@ class CandidatePair{
 
 };
 
+#endif

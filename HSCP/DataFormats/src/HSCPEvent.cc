@@ -45,7 +45,7 @@ void CandidatePair::clear(){
 	if (index == 1) phi_1 = x;
 	if (index == 2) pt_2 = x;
 	else {cout << "ERROR: The value of set_pt(?) should be 1 or 2!!!"; exit(0);}}
-
+  
   double CandidatePair::pt(int index){
 	if (index == 1) return pt_1;
 	if (index == 2) return pt_2;
