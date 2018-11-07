@@ -1,18 +1,18 @@
-project(HTauTau_Analysis LANGUAGES CXX)
+project(HSCP_Analysis LANGUAGES CXX)
 
 include_directories(${PROJECT_SOURCE_DIR}/../include ${CMAKE_SOURCE_DIR}/Core/include ${CMAKE_SOURCE_DIR}/HTauTau/DataFormats/include)
 include_directories(${ROOTINCDIR})
 
-add_library(Analysis SHARED ChannelSpecifics.cc HTTAnalyzer.cc
+add_library(AnalysisHSCP SHARED ChannelSpecifics.cc HTTAnalyzer.cc
   HTTAnalyzerCPmethods.cc HTTHistograms.cc HTTSynchNTuple.cc
   MuTauSpecifics.cc TauTauSpecifics.cc Tools.cc BTagCalibrationStandalone.cpp MLAnalyzer.cc)
 
 # Define an executable
-add_executable(httAnalysis HTTAnalysis.cc)
+add_executable(hscpAnalysis HTTAnalysis.cc)
 
-target_link_libraries(httAnalysis Analysis ${Boost_REGEX_LIBRARY} ${ROOT_LIBRARIES} Proof RooFitCore RooFit FrameworkCore DataFormats)
+target_link_libraries(hscpAnalysis AnalysisHSCP ${Boost_REGEX_LIBRARY} ${ROOT_LIBRARIES} Proof RooFitCore RooFit FrameworkCore DataFormats)
 
-install(TARGETS Analysis httAnalysis 
+install(TARGETS AnalysisHSCP hscpAnalysis 
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(FILES $<1:${PROJECT_SOURCE_DIR}/../config/> DESTINATION config)
